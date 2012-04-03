@@ -1,24 +1,22 @@
 =head1 NAME
 
-check_swap_page - A Nagios plugin to check swap in/out and page iun/out
+check_vm_swap check_vm_page - A Nagios plugin to check swap in/out and page in/out
 activities
 
 =head1 SYNOPSIS
 
-check_swap_page --warning-swap 5 --warning-page 10 --critical-swap 10 --critical-page 20 [-v]
+check_vm_swap --warning 5 --critical 10
 
 =head1 DESCRIPTION
 
-check_swap_page checks swap and page activities. it does B<NOT> check total amount
-of available swap storage.
+check_vm_swap checks swap, check_vm_page checks page activities. it does B<NOT>
+check total amount of available swap storage.
 
 =head2 OPTIONS
 
 =over
 
-=item --warning-swap, --critical-swap
-
-=item --warning-page, --critical-page
+=item --warning, --critical
 
 =back
 
