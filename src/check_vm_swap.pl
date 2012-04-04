@@ -14,9 +14,11 @@ use Nagios::Plugin;
 our $VERSION = 0.1;
 
 my $state_dir = "/var/spool/nagios/plugins";
+
 #my $state_dir = "/home/tomoyukis/tmp";
-my $myname = basename $PROGRAM_NAME;
+my $myname      = basename $PROGRAM_NAME;
 my %command_for = (
+
     # the order matters
     freebsd => {
         swap => "sysctl -n vm.stats.vm.v_swapin vm.stats.vm.v_swapout",
@@ -24,19 +26,19 @@ my %command_for = (
     }
 );
 
-
 my $p = Nagios::Plugin->new(
-    shortname => uc( $myname ),
-    usage => "Usage: %s [ --warning w ] [ --critical c ] ] [ -v ]",
-    version => $VERSION,
-    plugin  => $myname,
-    timeout => 10,
+    shortname => uc($myname),
+    usage     => "Usage: %s [ --warning w ] [ --critical c ] ] [ -v ]",
+    version   => $VERSION,
+    plugin    => $myname,
+    timeout   => 10,
 );
 
 $p->add_arg(
     spec => "warning=i",
-    help => ["Exit with WARNING status if more than swap in/out operations/min"],
-    label => qw[ NUMBER ],
+    help =>
+      ["Exit with WARNING status if more than swap in/out operations/min"],
+    label    => qw[ NUMBER ],
     required => 1,
 );
 
@@ -44,13 +46,14 @@ $p->add_arg(
     spec => "critical=i",
     help =>
       ["Exit with CRITICAL status if more than swap in/out operations/min"],
-    label => qw[ NUMBER ],
+    label    => qw[ NUMBER ],
     required => 1,
 );
 
 $p->add_arg(
     spec => "type=s",
-    help => ["What to monitor, either \"swap\" or \"page\". default is \"swap\"" ],
+    help =>
+      ["What to monitor, either \"swap\" or \"page\". default is \"swap\""],
     default => "swap",
 );
 
@@ -58,20 +61,24 @@ $p->getopts;
 
 sub update_data {
     my $total = shift;
-    my $file = File::Spec->catfile($state_dir, $myname);
-    open my $state_fh, "+<", $file or $p->nagios_exit(UNKNOWN, "cannot open() $file: $!");
-    flock $state_fh, LOCK_EX or $p->nagios_exit(UNKNOWN, $!);
-    my $last_total = do { local $/; <$state_fh> }; # slurp mode
+    my $file = File::Spec->catfile( $state_dir, $myname );
+    open my $state_fh, "+<", $file
+      or $p->nagios_exit( UNKNOWN, "cannot open() $file: $!" );
+    flock $state_fh, LOCK_EX or $p->nagios_exit( UNKNOWN, $! );
+    my $last_total = do { local $/; <$state_fh> };    # slurp mode
     $last_total = 0 unless $last_total;
-    printf "total: %d last_total: %d\n", $total, $last_total if $p->opts->verbose;
-    seek $state_fh, 0, 0 or $p->nagios_exit(UNKNOWN, "cannot seek() $file: $!");
+    printf "total: %d last_total: %d\n", $total, $last_total
+      if $p->opts->verbose;
+    seek $state_fh, 0, 0
+      or $p->nagios_exit( UNKNOWN, "cannot seek() $file: $!" );
     print $state_fh $total;
-    truncate $state_fh, tell($state_fh) or $p->nagios_exit(UNKNOWN, "cannot truncate() $file: $!");
+    truncate $state_fh, tell($state_fh)
+      or $p->nagios_exit( UNKNOWN, "cannot truncate() $file: $!" );
     return $total - $last_total;
 }
 
 sub get_diff {
-    my $command = $command_for{$OSNAME}{$p->opts->type};
+    my $command = $command_for{$OSNAME}{ $p->opts->type };
     my ( $success, $error_code, $full_buf, $stdout_buf, $stderr_buf ) =
       run( command => $command, verbose => $p->opts->verbose );
     if ( !$success ) {
@@ -80,7 +87,7 @@ sub get_diff {
     }
     my ( $in, $out ) =
       split( "\n", join q{}, @{$stdout_buf} );
-    my $diff = update_data($in + $out);
+    my $diff = update_data( $in + $out );
     return $diff;
 }
 
@@ -88,7 +95,7 @@ if ( !$command_for{$OSNAME} ) {
     $p->nagios_exit( UNKNOWN, sprintf "platform %s is not supported", $OSNAME );
 }
 
-my $diff = get_diff();
+my $diff   = get_diff();
 my $permin = $diff / 5;
 my $status = $p->check_threshold(
     check    => $permin,
