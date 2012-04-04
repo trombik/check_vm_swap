@@ -9,14 +9,19 @@ use English '-no_match_vars';
 use IPC::Cmd qw{ run };
 use Nagios::Plugin;
 
+# TODO
+# - per min/sec
 our $VERSION = 0.1;
 
-my $state_dir = "/var/spool/nagios/plugins"
+my $state_dir = "/var/spool/nagios/plugins";
 #my $state_dir = "/home/tomoyukis/tmp";
 my $myname = basename $PROGRAM_NAME;
 my %command_for = (
     # the order matters
-    freebsd => "sysctl -n vm.stats.vm.v_swapin vm.stats.vm.v_swapout",
+    freebsd => {
+        swap => "sysctl -n vm.stats.vm.v_swapin vm.stats.vm.v_swapout",
+        page => "sysctl -n vm.stats.vm.v_swappgsin vm.stats.vm.v_swappgsout",
+    }
 );
 
 
@@ -43,24 +48,30 @@ $p->add_arg(
     required => 1,
 );
 
+$p->add_arg(
+    spec => "type=s",
+    help => ["What to monitor, either \"swap\" or \"page\". default is \"swap\"" ],
+    default => "swap",
+);
+
 $p->getopts;
 
 sub update_data {
     my $total = shift;
     my $file = File::Spec->catfile($state_dir, $myname);
-    open my $state_fh, "+<", $file or nagios_exit(UNKNOWN, "cannot open() $file: $!");
-    flock $state_fh, LOCK_EX or nagios_exit(UNKNOWN, $!);
+    open my $state_fh, "+<", $file or $p->nagios_exit(UNKNOWN, "cannot open() $file: $!");
+    flock $state_fh, LOCK_EX or $p->nagios_exit(UNKNOWN, $!);
     my $last_total = do { local $/; <$state_fh> }; # slurp mode
     $last_total = 0 unless $last_total;
     printf "total: %d last_total: %d\n", $total, $last_total if $p->opts->verbose;
-    seek $state_fh, 0, 0 or nagios_exit(UNKNOWN, "cannot seek() $file: $!");
+    seek $state_fh, 0, 0 or $p->nagios_exit(UNKNOWN, "cannot seek() $file: $!");
     print $state_fh $total;
-    truncate $state_fh, tell($state_fh) or nagios_exit(UNKNOWN, "cannot truncate() $file: $!");
+    truncate $state_fh, tell($state_fh) or $p->nagios_exit(UNKNOWN, "cannot truncate() $file: $!");
     return $total - $last_total;
 }
 
 sub get_diff {
-    my $command = $command_for{$OSNAME};
+    my $command = $command_for{$OSNAME}{$p->opts->type};
     my ( $success, $error_code, $full_buf, $stdout_buf, $stderr_buf ) =
       run( command => $command, verbose => $p->opts->verbose );
     if ( !$success ) {
@@ -69,7 +80,6 @@ sub get_diff {
     }
     my ( $in, $out ) =
       split( "\n", join q{}, @{$stdout_buf} );
-    ($in, $out) = ( 10, 54000 );
     my $diff = update_data($in + $out);
     return $diff;
 }
@@ -78,7 +88,6 @@ if ( !$command_for{$OSNAME} ) {
     $p->nagios_exit( UNKNOWN, sprintf "platform %s is not supported", $OSNAME );
 }
 
-
 my $diff = get_diff();
 my $permin = $diff / 5;
 my $status = $p->check_threshold(
@@ -86,7 +95,7 @@ my $status = $p->check_threshold(
     warning  => $p->opts->warning,
     critical => $p->opts->critical,
 );
-my $message = sprintf "swap in/out %d/min", $permin;
+my $message = sprintf "%s in/out %d/min", $p->opts->type, $permin;
 $p->nagios_exit( $status, $message );
 
 =head1 NAME
@@ -111,6 +120,9 @@ idle for a while and other processes need memory, it's okay. That's what kernel
 is supposed to do. I needed a plugin to check how often kernel swap-in/out
 process.
 
+by default, it monitors how often kernel swaps in/out. paging in/out is also
+supported.
+
 =head2 OPTIONS
 
 =over
@@ -118,6 +130,10 @@ process.
 =item --warning, --critical
 
 per-five-minutes thresholds for swap operation.
+
+=item --type TYPE
+
+What VM activity to monitor, "swap" or "page", default is swap.
 
 =back
 
