@@ -4,20 +4,18 @@ BIN=		${SRC:C/.pl//}
 
 .SUFFIXES:	.pl
 
-all:	${BIN} pod
+all:	${BIN} README
 
 .pl:
 	cp ${.IMPSRC} ${.TARGET}
 	chmod +x ${.TARGET}
 
-update_pod:	rm_pod pod
+update_README:	rm_README README
 
-rm_pod:
-	rm README.pod
+rm_README:
+	rm README
 
-pod:	README.pod
-
-README.pod:
+README:
 	pod2text ${SRC} > ${.TARGET}
 
 clean:
