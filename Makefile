@@ -10,6 +10,11 @@ all:	${BIN} pod
 	cp ${.IMPSRC} ${.TARGET}
 	chmod +x ${.TARGET}
 
+update_pod:	rm_pod pod
+
+rm_pod:
+	rm README.pod
+
 pod:	README.pod
 
 README.pod:
