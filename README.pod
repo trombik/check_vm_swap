@@ -1,45 +1,50 @@
-=head1 NAME
+NAME
+    check_vm_swap - A Nagios plugin to check swap in/out operations
 
-check_vm_swap check_vm_page - A Nagios plugin to check swap in/out and page in/out
-activities
+    activities
 
-=head1 SYNOPSIS
+SYNOPSIS
+    check_vm_swap --warning w --critical c [-v]
 
-check_vm_swap --warning 5 --critical 10
+DESCRIPTION
+    check_vm_swap checks swap activities. it does NOT check total amount of
+    available swap storage. As long as kernel has enough swap space,
+    swapping is not a problem. Mordern kernel rarely swap process. Even if
+    it does, it's OK if the swapped process is idling. However, many
+    swapping activity is almost always a problem. check_swap from Nagios
+    plugins just checks how much swap space is available and screams when
+    swap is used. If swapped process has been idle for a while and other
+    processes need memory, it's okay. That's what kernel is supposed to do.
+    I needed a plugin to check how often kernel swap-in/out process.
 
-=head1 DESCRIPTION
+    by default, it monitors how often kernel swaps in/out. paging in/out is
+    also supported.
 
-check_vm_swap checks swap, check_vm_page checks page activities. it does B<NOT>
-check total amount of available swap storage.
+  OPTIONS
+    --warning, --critical
+        per-five-minutes thresholds for swap operation.
 
-=head2 OPTIONS
+    --type TYPE
+        What VM activity to monitor, "swap" or "page", default is swap.
 
-=over
+SEE ALSO
+    check_swap, if you really want to monitor how much swap space left.
 
-=item --warning, --critical
+AUTHOR
+    Tomoyuki Sakurai <tomoyukis@reallyenglish.com>
 
-=back
+LICENSE
+    Copyright (c) 2012 Tomoyuki Sakurai <tomoyukis@reallyenglish.com>
 
-=head1 SEE ALSO
+    Permission to use, copy, modify, and distribute this software for any
+    purpose with or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
 
-check_swap, if you B<really> want to monitor how much swap space left.
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-=head1 AUTHOR
-
-Tomoyuki Sakurai <tomoyukis@reallyenglish.com>
-
-=head1 LICENSE
-
-Copyright (c) 2012 Tomoyuki Sakurai <tomoyukis@reallyenglish.com>
-
-Permission to use, copy, modify, and distribute this software for any 
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR 
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
