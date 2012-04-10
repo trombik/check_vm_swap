@@ -62,8 +62,14 @@ $p->getopts;
 sub update_data {
     my $total = shift;
     my $file = File::Spec->catfile( $state_dir, $myname );
-    open my $state_fh, "+<", $file
-      or $p->nagios_exit( UNKNOWN, "cannot open() $file: $!" );
+    my $state_fh;
+    if (-f $file) {
+        open $state_fh, "+<", $file
+          or $p->nagios_exit( UNKNOWN, "cannot open() for +< $file: $!" );
+    } else {
+        open $state_fh, "+>", $file
+          or $p->nagios_exit( UNKNOWN, "cannot open() for > $file: $!" );
+    }
     flock $state_fh, LOCK_EX or $p->nagios_exit( UNKNOWN, $! );
     my $last_total = do { local $/; <$state_fh> };    # slurp mode
     $last_total = 0 unless $last_total;
@@ -74,7 +80,7 @@ sub update_data {
     print $state_fh $total;
     truncate $state_fh, tell($state_fh)
       or $p->nagios_exit( UNKNOWN, "cannot truncate() $file: $!" );
-    return $total - $last_total;
+    return $last_total == 0 ? 0 : $total - $last_total;
 }
 
 sub get_diff {
