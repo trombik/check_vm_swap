@@ -13,7 +13,7 @@ use Nagios::Plugin;
 # - per min/sec
 our $VERSION = 0.1;
 
-my $state_dir = "/var/spool/nagios/plugins";
+my $default_statedir = "/var/spool/nagios/plugins";
 
 #my $state_dir = "/home/tomoyukis/tmp";
 my $myname      = basename $PROGRAM_NAME;
@@ -57,11 +57,17 @@ $p->add_arg(
     default => "swap",
 );
 
+$p->add_arg(
+    spec => "statedir=s",
+    help => [ "path to plugins state directory" ],
+    default => $default_statedir,
+);
+
 $p->getopts;
 
 sub update_data {
     my $total = shift;
-    my $file = File::Spec->catfile( $state_dir, $myname );
+    my $file = File::Spec->catfile( $p->opts->statedir, $myname );
     my $state_fh;
     if (-f $file) {
         open $state_fh, "+<", $file
@@ -147,6 +153,11 @@ per-five-minutes thresholds for swap operation.
 =item --type TYPE
 
 What VM activity to monitor, "swap" or "page", default is swap.
+
+=item --statedir /path/to/directoy
+
+Where state file is written (/var/spool/nagios/plugins). The user needs write
+perimission.
 
 =back
 
