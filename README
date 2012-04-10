@@ -21,11 +21,15 @@ DESCRIPTION
     also supported.
 
   OPTIONS
-    --warning, --critical
+    --warning, -w, --critical, -c
         per-five-minutes thresholds for swap operation.
 
     --type TYPE
         What VM activity to monitor, "swap" or "page", default is swap.
+
+    --statedir /path/to/directoy
+        Where state file is written (/var/spool/nagios/plugins). The user
+        needs write perimission.
 
 SEE ALSO
     check_swap, if you really want to monitor how much swap space left.
