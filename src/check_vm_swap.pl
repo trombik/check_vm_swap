@@ -35,7 +35,7 @@ my $p = Nagios::Plugin->new(
 );
 
 $p->add_arg(
-    spec => "warning=i",
+    spec => "warning|w=i",
     help =>
       ["Exit with WARNING status if more than swap in/out operations/min"],
     label    => qw[ NUMBER ],
@@ -43,7 +43,7 @@ $p->add_arg(
 );
 
 $p->add_arg(
-    spec => "critical=i",
+    spec => "critical|c=i",
     help =>
       ["Exit with CRITICAL status if more than swap in/out operations/min"],
     label    => qw[ NUMBER ],
@@ -146,7 +146,7 @@ supported.
 
 =over
 
-=item --warning, --critical
+=item --warning, -w, --critical, -c
 
 per-five-minutes thresholds for swap operation.
 
