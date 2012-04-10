@@ -15,7 +15,7 @@ update_README:	rm_README README
 rm_README:
 	rm README
 
-README:
+README:	rm_README
 	pod2text ${SRC} > ${.TARGET}
 
 clean:
