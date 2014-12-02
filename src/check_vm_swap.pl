@@ -23,6 +23,9 @@ my %command_for = (
     freebsd => {
         swap => "sysctl -n vm.stats.vm.v_swapin vm.stats.vm.v_swapout",
         page => "sysctl -n vm.stats.vm.v_swappgsin vm.stats.vm.v_swappgsout",
+    },
+    linux => {
+        page => '/bin/cat /proc/vmstat | /bin/grep pswp | /usr/bin/awk \'{ print $2} \''
     }
 );
 
